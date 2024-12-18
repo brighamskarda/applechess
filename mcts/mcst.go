@@ -12,7 +12,7 @@ import (
 
 const c = math.Sqrt2
 const iterationsBetweenTimeChecks = 100
-const randomRolloutLength = 50
+const randomRolloutLength = 20
 
 // Mcts (Monte Carlo Tree Search) agent for chess
 type Mcts struct {
@@ -113,7 +113,65 @@ func randomRollout(p chess.Position, agentColor chess.Color) float64 {
 		move := legalMoves[rand.IntN(len(legalMoves))]
 		p.Move(move)
 	}
+	return determineReward(&p, agentColor)
+}
+
+func determineReward(p *chess.Position, agentColor chess.Color) float64 {
+	const limitForWin = 2
+	positionValue := getPositionValue(p)
+	switch agentColor {
+	case chess.White:
+		if positionValue > limitForWin {
+			return 1
+		}
+		if positionValue < -limitForWin {
+			return 0
+		}
+	case chess.Black:
+		if positionValue > limitForWin {
+			return 0
+		}
+		if positionValue < -limitForWin {
+			return 1
+		}
+	}
 	return 0.5
+}
+
+func getPositionValue(p *chess.Position) float64 {
+	const pawn = 1
+	const rook = 5
+	const knight = 2.9
+	const bishop = 3
+	const queen = 8
+	const king = 10000
+
+	totalValue := 0.0
+	for _, piece := range p.Board {
+		var val float64
+		switch piece.Type {
+		case chess.Pawn:
+			val = pawn
+		case chess.Rook:
+			val = rook
+		case chess.Knight:
+			val = knight
+		case chess.Bishop:
+			val = bishop
+		case chess.Queen:
+			val = queen
+		case chess.King:
+			val = king
+		default:
+			val = 0
+		}
+		if piece.Color == chess.White {
+			totalValue += val
+		} else if piece.Color == chess.Black {
+			totalValue -= val
+		}
+	}
+	return totalValue
 }
 
 func fillInChildren(n *node) {
