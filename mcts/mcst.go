@@ -28,26 +28,64 @@ type node struct {
 	children []*node
 }
 
-func (mcts Mcts) GetMove(p chess.Position) chess.Move {
-	defer mcts.resetN()
+func makeParentNode(p chess.Position) *node {
+	legalMoves := chess.GenerateLegalMoves(&p)
 	parentNode := &node{
 		w:        0,
 		n:        0,
 		mov:      chess.Move{},
 		pos:      &p,
-		children: make([]*node, 0),
+		children: make([]*node, 0, len(legalMoves)),
 	}
 
+	for _, move := range legalMoves {
+		newPos := p
+		p.Move(move)
+		parentNode.children = append(parentNode.children, &node{
+			w:        0,
+			n:        0,
+			mov:      move,
+			pos:      &newPos,
+			children: make([]*node, 0),
+		})
+	}
+	return parentNode
+}
+
+func (mcts Mcts) GetMove(p chess.Position) chess.Move {
+	defer mcts.resetN()
+	parentNode := makeParentNode(p)
+
+	returnChannels := make([]chan struct{}, 0, len(parentNode.children))
+	for i, child := range parentNode.children {
+		returnChannels = append(returnChannels, make(chan struct{}))
+		go concurrentIterate(Mcts{Duration: mcts.Duration}, child, p.Turn, returnChannels[i])
+	}
+
+	for _, ch := range returnChannels {
+		<-ch
+	}
+
+	var totalIterations int64
+	for _, child := range parentNode.children {
+		totalIterations += child.n
+	}
+
+	slog.Info("Performed " + fmt.Sprint(totalIterations) + " iterations of mcts")
+	return bestMove(parentNode)
+}
+
+func concurrentIterate(mcts Mcts, n *node, agentColor chess.Color, signalDone chan struct{}) {
 	startTime := time.Now()
 	for time.Now().Sub(startTime).Milliseconds() < int64(mcts.Duration)*1000 {
 		for i := 0; i < iterationsBetweenTimeChecks; i++ {
-			mcts.iterate(parentNode, p.Turn)
+			n.w += mcts.iterate(n, agentColor)
+			n.n++
 			mcts.n++
 		}
 	}
 
-	slog.Info("Performed " + fmt.Sprint(mcts.n) + " iterations of mcts")
-	return bestMove(parentNode)
+	signalDone <- struct{}{}
 }
 
 // iterate is recursive, and returns 1 for a win, 0.5 for stalemate and 0 for a loss. Used for back propagation
@@ -117,7 +155,7 @@ func randomRollout(p chess.Position, agentColor chess.Color) float64 {
 }
 
 func determineReward(p *chess.Position, agentColor chess.Color) float64 {
-	const limitForWin = 2
+	const limitForWin = 8
 	positionValue := getPositionValue(p)
 	switch agentColor {
 	case chess.White:
