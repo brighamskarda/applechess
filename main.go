@@ -9,7 +9,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/brighamskarda/applechess.git/mcst"
+	"github.com/brighamskarda/applechess.git/mcts"
 	"github.com/brighamskarda/chess"
 )
 
@@ -35,6 +35,7 @@ func main() {
 			slog.Error("agent provided invalid move", "agent-color", game.Turn())
 			os.Exit(1)
 		}
+		fmt.Println(move)
 		fmt.Println()
 	}
 
@@ -63,8 +64,8 @@ type ChessAgent interface {
 
 func parseArgs() [2]ChessAgent {
 	help := flag.Bool("help", false, "prints help")
-	player1 := flag.String("p1", "human", "agent to play white [human|mcst]")
-	player2 := flag.String("p2", "human", "agent to play black [human|mcst]")
+	player1 := flag.String("p1", "human", "agent to play white [human|mcts]")
+	player2 := flag.String("p2", "human", "agent to play black [human|mcts]")
 	player1Option := flag.Int("o1", 2, "option for player1, for depth based agents this the depth, for time based agents this is the time in seconds")
 	player2Option := flag.Int("o2", 2, "option for player2, for depth based agents this the depth, for time based agents this is the time in seconds")
 	logLevel := flag.String("log", "ERROR", "logging level [ERROR|WARN|INFO|DEBUG]")
@@ -94,8 +95,8 @@ func parseArgs() [2]ChessAgent {
 	switch strings.ToLower(*player1) {
 	case "human":
 		agents[0] = Human{}
-	case "mcst":
-		agents[0] = mcst.Mcst{Duration: *player1Option}
+	case "mcts":
+		agents[0] = mcts.Mcts{Duration: *player1Option}
 	default:
 		slog.Error("could not parse -p1 argument", "arg", *player1)
 		os.Exit(1)
@@ -104,8 +105,8 @@ func parseArgs() [2]ChessAgent {
 	switch strings.ToLower(*player2) {
 	case "human":
 		agents[1] = Human{}
-	case "mcst":
-		agents[1] = mcst.Mcst{Duration: *player2Option}
+	case "mcts":
+		agents[1] = mcts.Mcts{Duration: *player2Option}
 	default:
 		slog.Error("could not parse -p2 argument", "arg", *player2)
 		os.Exit(1)
