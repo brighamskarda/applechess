@@ -99,7 +99,7 @@ func max(p *chess.Position, depth int) (chess.Move, float64) {
 
 func evaluate(p *chess.Position) float64 {
 	total := sumMaterial(p)
-	total += calcAttacks(p)
+	total += float64(numPseudoLegalChecks(p)) * 0.2
 	return total
 }
 
@@ -143,44 +143,38 @@ func getPieceValue(p chess.Piece) float64 {
 	}
 }
 
-func calcAttacks(p *chess.Position) float64 {
-	total := 0.0
-	for _, square := range chess.AllSquares {
-		newPos := *p
-		total += simulateAttacks(&newPos, square)
+func numPseudoLegalChecks(p *chess.Position) int {
+	origTurn := p.Turn
+
+	total := 0
+	p.Turn = chess.White
+	blackKing := findKing(p, chess.Black)
+	pLegalMoves := chess.GeneratePseudoLegalMoves(p)
+	for _, move := range pLegalMoves {
+		if move.ToSquare == blackKing {
+			total++
+		}
 	}
+
+	p.Turn = chess.Black
+	whiteKing := findKing(p, chess.White)
+	pLegalMoves = chess.GeneratePseudoLegalMoves(p)
+	for _, move := range pLegalMoves {
+		if move.ToSquare == whiteKing {
+			total--
+		}
+	}
+
+	p.Turn = origTurn
 	return total
 }
 
-func simulateAttacks(p *chess.Position, square chess.Square) float64 {
-	legalMoves := chess.GenerateLegalMoves(p)
-	lowestCost := math.MaxFloat64
-	if p.Turn == chess.Black {
-		lowestCost *= -1
-	}
-	lowestCostMove := chess.Move{}
-	for _, move := range legalMoves {
-		if move.ToSquare != square {
-			continue
-		}
-		cost := getPieceValue(p.PieceAt(move.FromSquare))
-		if p.Turn == chess.White {
-			if cost < lowestCost {
-				lowestCost = cost
-				lowestCostMove = move
-			}
-		}
-		if p.Turn == chess.Black {
-			if cost > lowestCost {
-				lowestCost = cost
-				lowestCostMove = move
-			}
+func findKing(p *chess.Position, c chess.Color) chess.Square {
+	for _, square := range chess.AllSquares {
+		piece := p.PieceAt(square)
+		if piece.Type == chess.King && piece.Color == c {
+			return square
 		}
 	}
-	noMove := chess.Move{}
-	if lowestCostMove == noMove {
-		return 0
-	}
-	p.Move(lowestCostMove)
-	return simulateAttacks(p, square) - lowestCost
+	return chess.NoSquare
 }
