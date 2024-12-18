@@ -2,5 +2,7 @@ github.com/brighamskarda/chess v1.0.2-0.20241217214843-66a8a3ed7b06 h1:/jrIKoTq/
 github.com/brighamskarda/chess v1.0.2-0.20241217214843-66a8a3ed7b06/go.mod h1:WPlTlW701FiY6Jzrkg5mmftMpsmIT8EprdKfxfH8sMg=
 github.com/brighamskarda/chess v1.0.2-0.20241217224244-0fb078dba7a8 h1:OlxX50EbNi06W5yCZ0wQCVyYGlVA9EfucaXSmzuSrMw=
 github.com/brighamskarda/chess v1.0.2-0.20241217224244-0fb078dba7a8/go.mod h1:WPlTlW701FiY6Jzrkg5mmftMpsmIT8EprdKfxfH8sMg=
+github.com/brighamskarda/chess v1.0.2-0.20241218225128-b90f45b06934 h1:xX/7Fy+ONK8bvNATjH+mwnomGPtv9BnvbSgFqMvxFyE=
+github.com/brighamskarda/chess v1.0.2-0.20241218225128-b90f45b06934/go.mod h1:WPlTlW701FiY6Jzrkg5mmftMpsmIT8EprdKfxfH8sMg=
 github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
 github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
