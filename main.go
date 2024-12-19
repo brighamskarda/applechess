@@ -9,6 +9,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/brighamskarda/applechess.git/alphabeta"
 	"github.com/brighamskarda/applechess.git/mcts"
 	"github.com/brighamskarda/applechess.git/minmax"
 	"github.com/brighamskarda/chess"
@@ -65,8 +66,8 @@ type ChessAgent interface {
 
 func parseArgs() [2]ChessAgent {
 	help := flag.Bool("help", false, "prints help")
-	player1 := flag.String("p1", "human", "agent to play white [human|mcts|minmax]")
-	player2 := flag.String("p2", "human", "agent to play black [human|mcts|minmax]")
+	player1 := flag.String("p1", "human", "agent to play white [human|mcts|minmax|ab]")
+	player2 := flag.String("p2", "human", "agent to play black [human|mcts|minmax|ab]")
 	player1Option := flag.Int("o1", 2, "option for player1, for depth based agents this the depth, for time based agents this is the time in seconds")
 	player2Option := flag.Int("o2", 2, "option for player2, for depth based agents this the depth, for time based agents this is the time in seconds")
 	logLevel := flag.String("log", "ERROR", "logging level [ERROR|WARN|INFO|DEBUG]")
@@ -100,6 +101,8 @@ func parseArgs() [2]ChessAgent {
 		agents[0] = mcts.Mcts{Duration: *player1Option}
 	case "minmax":
 		agents[0] = minmax.Minmax{Depth: *player1Option}
+	case "ab":
+		agents[0] = alphabeta.AlphaBeta{Depth: *player1Option}
 	default:
 		slog.Error("could not parse -p1 argument", "arg", *player1)
 		os.Exit(1)
@@ -112,6 +115,8 @@ func parseArgs() [2]ChessAgent {
 		agents[1] = mcts.Mcts{Duration: *player2Option}
 	case "minmax":
 		agents[1] = minmax.Minmax{Depth: *player2Option}
+	case "ab":
+		agents[1] = alphabeta.AlphaBeta{Depth: *player2Option}
 	default:
 		slog.Error("could not parse -p2 argument", "arg", *player2)
 		os.Exit(1)
