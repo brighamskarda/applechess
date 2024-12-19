@@ -1,4 +1,3 @@
 # applechess
-A chess engine written entirely in go.
 
-WIP
+Various Chess Engines written in go for CS470
